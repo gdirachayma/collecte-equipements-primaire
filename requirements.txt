@@ -1,4 +1,7 @@
 streamlit
 pandas
-gspread
-sqlalchemy
+ultralytics
+YOLO
+PIL
+Image
+numpy
