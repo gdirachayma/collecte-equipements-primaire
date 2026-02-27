@@ -5,3 +5,5 @@ YOLO
 PIL
 Image
 numpy
+Roboflow
+cv2
