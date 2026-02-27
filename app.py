@@ -1,39 +1,35 @@
 import streamlit as st
-from ultralytics import YOLO
+from roboflow import Roboflow
 from PIL import Image
 import numpy as np
+import cv2
 
-st.title("Détection et comptage des tables en classe")
+# Initialisation Roboflow
+rf = Roboflow(api_key="U4TqKvyaYQ5LfxGVumph")
+project = rf.workspace().project("find_desks")  # Remplace par ton projet
+model = project.version(1).model  # Version 1 par exemple
 
-# Charger modèle YOLO
-model = YOLO("yolov8n.pt")  # modèle léger pré-entraîné
+st.title("Détecteur et compteur de tables")
 
-uploaded_file = st.file_uploader("Télécharge une image", type=["jpg", "png", "jpeg"])
+# Upload d'image
+uploaded_file = st.file_uploader("Choisissez une photo de la salle de classe", type=["jpg","png","jpeg"])
 
-if uploaded_file is not None:
+if uploaded_file:
     image = Image.open(uploaded_file)
     st.image(image, caption="Image chargée", use_column_width=True)
-
-    # Convertir image
-    img_array = np.array(image)
-
-    # Détection
     
-    results = model(img_array, conf=0.5)
-
-    # Compter les objets détectés
-    boxes = results[0].boxes
-    class_ids = boxes.cls.tolist()
-
-    # Classes COCO :
-    # 60 = dining table
-    # 62 = tv
-    # etc.
-
-    table_count = class_ids.count(60)
-
+    # Convertir en array pour Roboflow
+    img_array = np.array(image)
+  
+    
+    # Prédiction
+    prediction = model.predict(img_array, confidence=40, overlap=30).json()
+    
+    # Compter les tables
+    table_count = len(prediction['predictions'])
+    
     st.write(f"Nombre de tables détectées : {table_count}")
-
+    
     # Afficher image annotée
-    annotated = results[0].plot()
-    st.image(annotated, caption="Résultat détection", use_column_width=True)
+    annotated = model.predict(img_array, confidence=40, overlap=30).plot()
+    st.image(annotated, caption="Image annotée", use_column_width=True)
